@@ -1,7 +1,21 @@
 import bb.cascades 1.0
 import bb.data 1.0
+import my.library 1.0
 
 Page {
+    Menu.definition: MenuDefinition {
+        helpAction: HelpActionItem {
+            onTriggered: {
+                aboutSheet.open();
+            }
+        }
+        settingsAction: SettingsActionItem {
+            onTriggered: {
+                configSheet.open();
+            }
+        }
+    }
+    property bool autoScroll: true
     property int index: 0
     Container {
         topPadding: 20
@@ -11,9 +25,22 @@ Page {
         property double downY
         layout: StackLayout {
         }
-        ImageView {
-            id: image
-            horizontalAlignment: HorizontalAlignment.Center
+        Container {
+            layout: DockLayout {
+            }
+	        ImageView {
+	            id: image
+	            horizontalAlignment: HorizontalAlignment.Center
+	        }
+            Container {
+                id: status
+                layout: StackLayout {
+                    orientation: LayoutOrientation.LeftToRight
+                }
+                horizontalAlignment: HorizontalAlignment.Center
+                verticalAlignment: VerticalAlignment.Bottom
+                bottomPadding: 5
+            }
         }
         Label {
             id: label
@@ -24,6 +51,10 @@ Page {
                 downX = event.windowX;
                 downY = event.windowY;
             } else if (event.isUp()) {
+                if (autoScroll) {
+	                tAutoScroll.stop();
+	                tAutoScroll.start();
+                }
                 var yDiff = downY - event.windowY;
                 // take absolute value of yDiff
                 if (yDiff < 0) yDiff = -1 * yDiff;
@@ -45,6 +76,13 @@ Page {
 	                        label.text = data.detail;
                         }
                     }
+                    for (var i=0; i<dataModel.size(); i++){
+                        var control = status.at(i);
+                        if (i==index)
+                            control.active = true;
+                        else
+                            control.active = false;
+                    }
                 }
             }
         }
@@ -63,10 +101,61 @@ Page {
                 var dat = dataModel.value(index);
                 image.imageSource = dat.img;
                 label.text = dat.detail;
+                if (autoScroll)
+                	tAutoScroll.start();
+                for (var i=0; i<dataModel.size(); i++){
+                    var createdControl = circle.createObject();
+                    createdControl.index = i;
+                    if (i==0)
+                        createdControl.active = true;
+                    status.add(createdControl);
+                }
+            }
+        },
+        QTimer{
+            id: tAutoScroll
+            interval: 5000
+            onTimeout:{
+                if (index<dataModel.size()-1){
+                    index = index+1;
+                    var data = dataModel.value(index);
+                    image.imageSource = data.img;
+                    label.text = data.detail; 
+                }
+                else {
+                    index = 0;
+                    var data = dataModel.value(index);
+                    image.imageSource = data.img;
+                    label.text = data.detail;
+                }
+                for (var i=0; i<dataModel.size(); i++){
+                    var control = status.at(i);
+                    if (i==index)
+                        control.active = true;
+                    else
+                        control.active = false;
+                }
+            }
+        },
+        ComponentDefinition {
+            id: circle
+            source: "Circle.qml"
+        },
+        Sheet {
+            id: aboutSheet
+            content: About{
+            
+            }
+        },
+        Sheet {
+            id: configSheet
+            content: Config{
+            
             }
         }
     ]
     onCreationCompleted: {
+        autoScroll = app.getAutoScroll();
         dataSource.load();
     }
 }

@@ -2,6 +2,8 @@
 #define ApplicationUI_HPP_
 
 #include <QObject>
+#include <QTimer>
+#include <QSettings>
 
 namespace bb
 {
@@ -25,7 +27,10 @@ class ApplicationUI : public QObject
     Q_OBJECT
 public:
     ApplicationUI(bb::cascades::Application *app);
-    virtual ~ApplicationUI() { }
+    virtual ~ApplicationUI() {};
+    Q_INVOKABLE bool getAutoScroll();
+    Q_INVOKABLE void setAutoScroll(const bool &autoScroll);
+
 private slots:
     void onSystemLanguageChanged();
 private:

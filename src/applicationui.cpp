@@ -20,11 +20,11 @@ ApplicationUI::ApplicationUI(bb::cascades::Application *app) :
     }
     // initial load
     onSystemLanguageChanged();
-
+    qmlRegisterType<QTimer>("my.library", 1, 0, "QTimer");
     // Create scene document from main.qml asset, the parent is set
     // to ensure the document gets destroyed properly at shut down.
     QmlDocument *qml = QmlDocument::create("asset:///main.qml").parent(this);
-
+    qml->setContextProperty("app", this);
     // Create root object for the UI
     AbstractPane *root = qml->createRootObject<AbstractPane>();
 
@@ -41,4 +41,19 @@ void ApplicationUI::onSystemLanguageChanged()
     if (m_pTranslator->load(file_name, "app/native/qm")) {
         QCoreApplication::instance()->installTranslator(m_pTranslator);
     }
+}
+
+bool ApplicationUI::getAutoScroll(){
+	QSettings settings;
+
+	if (settings.value("com.example.galeria.autoscroll").isNull()) {
+		return true;
+	}
+
+	return settings.value("com.example.galeria.autoscroll").toBool();
+}
+
+void ApplicationUI::setAutoScroll(const bool &autoscroll){
+	QSettings settings;
+	settings.setValue("com.example.galeria.autoscroll", QVariant(autoscroll));
 }
